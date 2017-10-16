@@ -47,8 +47,8 @@ int Rocket::getAngle(){
   return angles[cur_frame];
 }
 
-std::vector<int> &Rocket::getAngles(){
-  return angles;
+std::vector<int> *Rocket::getAngles(){
+  return &angles;
 }
 
 void Rocket::restart(){

@@ -10,6 +10,15 @@ MyCanvas::MyCanvas(QSize windowSize, QWidget *parent) :
 {
     threadPopWaiter = std::unique_ptr<sf::Thread> (new sf::Thread(&MyCanvas::waitPopTo, this));
     qApp->installEventFilter(this);
+    
+    pop = Population(400, 400, sf::Vector2f(320, 480));
+    pop.createRace(90, 200);
+    pop.createRace(70, 200);
+    pop.createRace(50, 200);
+
+    pop.createCible(sf::Vector2f(320, 100));
+    pop.createRectobs(sf::FloatRect(0, 230, 500, 20));
+    
 }
 
 MyCanvas::~MyCanvas(){
@@ -18,16 +27,6 @@ MyCanvas::~MyCanvas(){
 }
 
 void MyCanvas::OnInit(){
-    pop = Population(400, 400, sf::Vector2f(320, 480));
-    pop.createRace(90, 200);
-    pop.createRace(70, 200);
-    pop.createRace(50, 200);
-
-    pop.createCible(sf::Vector2f(320, 100));
-    pop.createRectobs(sf::FloatRect(0, 230, 500, 20));
-
-
-
     setFramerateLimit(200);
 }
 
@@ -156,5 +155,19 @@ void MyCanvas::addRectObst(){
     rect.left = 320-rect.width/2;
     rect.top = 240-rect.height/2;
     pop.createRectobs(rect, false);
+}
+
+void MyCanvas::deleteObstacles(){
+    pop.deleteAllObstacles();
+}
+
+std::vector<Race> *MyCanvas::getPopRaces(){
+    return pop.getRaces();
+}
+
+void MyCanvas::setPopRaces(const std::vector<RaceData> &races){
+    genGoto = 0;
+    (threadPopWaiter.get())->wait();
+    pop.setRaces(races);
 }
 

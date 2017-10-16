@@ -9,12 +9,13 @@ class Rocket
 {
 public:
   Rocket(const int &obey, const int &nb_angles, const int &nb_frames);
+  Rocket(const int &obey, const int &nb_angles, const int &nb_frames, std::vector<int> angles, const int &supported_ecart = 3000);
   void move();
   sf::Vector2f getPos();
   int getAngle();
   void restart();
   void restartFrom(std::vector<int> angles, const int &supported_ecart = 3000);
-  std::vector<int> &getAngles();
+  std::vector<int> *getAngles();
   void stop();
 
 private:

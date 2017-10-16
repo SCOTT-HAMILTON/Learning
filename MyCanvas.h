@@ -12,6 +12,8 @@ public:
     MyCanvas(QSize windowSize, QWidget *parent = NULL);
     virtual ~MyCanvas();
     int getCurrentGeneration();
+    std::vector<Race> *getPopRaces();
+    void setPopRaces(const std::vector<RaceData> &races);
 
 protected:
     virtual void mousePressEvent(QMouseEvent *event);
@@ -23,6 +25,7 @@ public slots:
     void resetGen();
     void moveCible();
     void addRectObst();
+    void deleteObstacles();
 
 signals:
     void genChanged(int);

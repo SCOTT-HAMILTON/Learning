@@ -6,10 +6,20 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
+struct RaceData2{
+    int success;
+    sf::Color color;
+    int pc_obey;
+    int nb_rockets;
+};
+
+typedef RaceData2 RaceData;
+
 struct Race2{
-  int pc_obey;
-  std::vector<Rocket> rockets;
-  int success;
+  std::vector<Rocket> rockets; 
+  RaceData raceData;
+  std::vector<int> cur_bestangles;
+  int cur_supportedecart;
 };
 
 typedef Race2 Race;
@@ -36,11 +46,14 @@ public:
   void resetPopulation();
   int getCurrentGeneration();
   void deleteObstacle(const sf::Vector2f &mousepos);
+  void deleteAllObstacles();
   void setObsUnfixed(const sf::Vector2f &mousepos);
   void setObsFixed(const sf::Vector2f &mousepos);
   bool obstacleUnfixed();
   void setMoveObs(const sf::Vector2f &mousepos);
   void applyObsMoves(const sf::Vector2f &mousepos);
+  std::vector<Race> *getRaces();
+  void setRaces(const std::vector<RaceData> &races);
 
 private:
   int nb_angles;
