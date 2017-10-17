@@ -132,7 +132,7 @@ void Population::drawPopulation(sf::RenderTarget &target)
   for (std::size_t r = 0; r < races.size(); r++){
     sf::Text txt;
     txt.setFont(font);
-    txt.setString(std::string("race "+toSTR(r)+" : "+toSTR(races[r].raceData.success)));
+    txt.setString(std::string("breed "+toSTR(r)+" : "+toSTR(races[r].raceData.success)));
     txt.setCharacterSize(20);
     txt.setPosition(pos);
     txt.setFillColor(races[r].raceData.color);
@@ -184,14 +184,12 @@ void Population::resetPopulation(){
 }
 
 void Population::restartPopulation(){
-std::cout << "oui start" << std::endl;
   float best_dist = 0;int indexbest_dist = 0;
   for (std::size_t r = 0; r < races.size(); r++)
   {
     best_dist = 0;
     indexbest_dist = 0;
     int dists = 0;
-    std::cout << "oui 5" << std::endl;
     for (int i = 0; i < races[r].raceData.nb_rockets; i++)
     {
       sf::Vector2f pos = {races[r].rockets[i].getPos().x+start.x, races[r].rockets[i].getPos().y+start.y};
@@ -202,18 +200,15 @@ std::cout << "oui start" << std::endl;
         indexbest_dist = i;
       }
     }
-    std::cout << "oui 4" << std::endl;
     dists /= races[r].raceData.nb_rockets;
     int ecart = (best_dist*3000)/600;
     races[r].cur_supportedecart = ecart;
     races[r].raceData.success = 100-(dists*100/600);
     
-    std::cout << "oui 3" << std::endl;
     races[r].cur_bestangles.clear();
     for (std::size_t a = 0; a < races[r].rockets[indexbest_dist].getAngles()->size(); a++){
         races[r].cur_bestangles.push_back((*(races[r].rockets[indexbest_dist].getAngles()))[a]);
     }
-    std::cout << "oui 2" << std::endl;
     for (int i = 0; i < races[r].raceData.nb_rockets; i++){
       if (best_dist<1){
         races[r].rockets[i].restartFrom((*(races[r].rockets[indexbest_dist].getAngles())), 0);
@@ -222,7 +217,6 @@ std::cout << "oui start" << std::endl;
       }
     }
   }
-  std::cout << "oui 1" << std::endl;
 }
 
 void Population::createRectobs(const sf::FloatRect &rect, bool fixed){
@@ -359,19 +353,24 @@ std::vector<Race> *Population::getRaces(){
     std::cout << "races size : " << races.size() << std::endl;
     return &races;
 }
-
 void Population::setRaces(const std::vector<RaceData> &races){
-    std::cout << "oui" << std::endl;
+    while (races.size() > this->races.size()){
+        createRace(50, 0);
+    }
+    while (races.size() < this->races.size()){
+        this->races.erase(this->races.begin());
+    }
     for (std::size_t i = 0; i < races.size(); i++){
+        std::cout << "fds 1" << std::endl;
         this->races[i].raceData = races[i];
+         std::cout << "fds 2" << std::endl;
         while ((std::size_t)this->races[i].raceData.nb_rockets > this->races[i].rockets.size()){
             this->races[i].rockets.push_back(Rocket(Rocket(this->races[i].raceData.pc_obey, nb_angles, nb_frames)));
         }
-        
+         std::cout << "fds 3" << std::endl;
         while ((std::size_t)this->races[i].raceData.nb_rockets < this->races[i].rockets.size()){
             this->races[i].rockets.erase(this->races[i].rockets.begin());
         }
-        
-        std::cout << "nb_rockets : " << races[i].nb_rockets << std::endl;
+         std::cout << "fds 4" << std::endl;
     }
 }

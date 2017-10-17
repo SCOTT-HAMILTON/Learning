@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include <sstream>
+#include <QApplication>
 
 
 #ifndef toSTR
@@ -43,7 +44,7 @@ MainWindow::MainWindow()
     
     clearObstacles = new QPushButton("Clear obstacles");
     
-    manage_races = new QPushButton("Manage races");
+    manage_races = new QPushButton("Manage breeds");
     
     
     controlLay->addWidget(box_gen, 20, Qt::AlignTop|Qt::AlignLeft);
@@ -85,11 +86,13 @@ void MainWindow::sendMoveCible(){
 }
 
 void MainWindow::initRacesDialog(){
+    
     races_dialog = new QDialog;
     std::vector<Race> *races = canvas->getPopRaces();
+    races_dialog->setMinimumSize(races->size()*68+73, 200);
     racesdialog_lay = new QHBoxLayout;
     racesdialog_tabs = new QTabWidget;
-    for (std::size_t i = 0; i < races->size(); i++){
+    for (std::size_t i = 0; i < races->size()+1; i++){
         DialogTab tab_widget;
         tab_widget.mainLay = new QVBoxLayout;
         tab_widget.main_widget = new QWidget;
@@ -97,20 +100,35 @@ void MainWindow::initRacesDialog(){
         tab_widget.nbrockets_spin = new QSpinBox;
         tab_widget.pc_lay = new QFormLayout;
         tab_widget.pc_spin = new QSpinBox;
-        tab_widget.validateButton = new QPushButton("Apply changes");
-        tab_widget.pc_spin->setValue((*(races))[i].raceData.pc_obey);
+        if (i == races->size()){
+            tab_widget.validateButton = new QPushButton("Create race");
+            tab_widget.pc_spin->setValue(50);
+        }
+        else {
+            tab_widget.validateButton = new QPushButton("Apply changes");
+            tab_widget.pc_spin->setValue((*(races))[i].raceData.pc_obey);
+            tab_widget.buttonsLay = new QHBoxLayout;
+            QIcon icondel(QApplication::applicationDirPath()+"/bin.png");
+            tab_widget.deleteButton = new QPushButton(icondel, "");
+            tab_widget.deleteButton->setFixedSize(30, 30);
+            tab_widget.buttonsLay->addWidget(tab_widget.validateButton);
+            tab_widget.buttonsLay->addWidget(tab_widget.deleteButton);
+        }
         tab_widget.pc_spin->setMaximum(100);
         
         tab_widget.nbrockets_spin->setMaximum(1000000);
-        tab_widget.nbrockets_spin->setValue((*(races))[i].rockets.size());
+        if (i == races->size())tab_widget.nbrockets_spin->setValue(100);
+        else tab_widget.nbrockets_spin->setValue((*(races))[i].rockets.size());
         
-        tab_widget.pc_lay->addRow("Pourcentage of obey : ", tab_widget.pc_spin);
+        tab_widget.pc_lay->addRow("Percentage of obedience : ", tab_widget.pc_spin);
         tab_widget.nbrockets_lay->addRow("Number of rockets : ", tab_widget.nbrockets_spin);
         
         tab_widget.colorButton = new QPushButton(tab_widget.main_widget);
         
         QPalette palette;
-        QColor color((*(races))[i].raceData.pc_obey*2.55f, 255-((float)(*(races))[i].raceData.pc_obey*2.55), 255);
+        QColor color;
+        if (i == races->size())color = QColor(255, 255, 255);
+        else color = QColor((float)(*(races))[i].raceData.pc_obey*2.55f, 255-((float)(*(races))[i].raceData.pc_obey*2.55), 255);
         
         tab_widget.ColorDiag = new QColorDialog(tab_widget.main_widget);
         tab_widget.ColorDiag->setCurrentColor(color);
@@ -125,15 +143,18 @@ void MainWindow::initRacesDialog(){
         tab_widget.mainLay->addLayout(tab_widget.pc_lay);
         tab_widget.mainLay->addLayout(tab_widget.nbrockets_lay);
         tab_widget.mainLay->addWidget(tab_widget.colorButton);
-        tab_widget.mainLay->addWidget(tab_widget.validateButton);
+        if (i == races->size())tab_widget.mainLay->addWidget(tab_widget.validateButton);
+        else tab_widget.mainLay->addLayout(tab_widget.buttonsLay);
         
         tab_widget.main_widget->setLayout(tab_widget.mainLay);
         
-        racesdialog_tabs->addTab(tab_widget.main_widget, QString::fromStdString(std::string("Race "+toSTR(i))));
+        if (i == races->size()) racesdialog_tabs->addTab(tab_widget.main_widget, "+");
+        else racesdialog_tabs->addTab(tab_widget.main_widget, QString::fromStdString(std::string("Breed "+toSTR(i))));
         
         racesdialogtab_widgets.push_back(tab_widget);
         
-        QObject::connect(tab_widget.validateButton, SIGNAL(clicked(bool)), this, SLOT(sendRacesParam()));
+        if (i == races->size())QObject::connect(tab_widget.validateButton, SIGNAL(clicked(bool)), this, SLOT(sendCreateRace()));
+        else QObject::connect(tab_widget.validateButton, SIGNAL(clicked(bool)), this, SLOT(sendRacesParam()));
         QObject::connect(tab_widget.colorButton, SIGNAL(clicked(bool)), tab_widget.ColorDiag, SLOT(open()));
         QObject::connect(tab_widget.ColorDiag, SIGNAL(colorSelected(QColor)), this, SLOT(update_colors()));
     }
@@ -141,6 +162,8 @@ void MainWindow::initRacesDialog(){
     racesdialog_lay->addWidget(racesdialog_tabs);
     
     races_dialog->setLayout(racesdialog_lay);
+    std::cout << "w : " << racesdialog_tabs->size().width() << std::endl;
+    std::cout << "h : " << racesdialog_tabs->size().height() << std::endl;
 }
 
 void MainWindow::manageRace(){
@@ -149,20 +172,89 @@ void MainWindow::manageRace(){
 
 void MainWindow::sendRacesParam(){
     std::vector<RaceData> params;
-    for (std::size_t i = 0; i < racesdialogtab_widgets.size(); i++){
+    for (std::size_t i = 0; i < racesdialogtab_widgets.size()-1; i++){
         RaceData race;
         race.pc_obey = racesdialogtab_widgets[i].pc_spin->value();
-        
         race.success = 0;
         race.nb_rockets = racesdialogtab_widgets[i].nbrockets_spin->value();
         QColor c = racesdialogtab_widgets[i].ColorDiag->currentColor();
         race.color = sf::Color(c.red(), c.green(), c.blue());
         params.push_back(race);
     }
-    
+    std::cout << "lol" << std::endl;
     canvas->setPopRaces(params);
-    
+    std::cout << "end" << std::endl;
     sendRestartGen();
+    
+}
+
+void MainWindow::sendCreateRace(){
+    races_dialog->setMinimumSize(racesdialog_tabs->count()*68+73, 200);
+    racesdialog_tabs->setTabText(racesdialog_tabs->count()-1, QString::fromStdString(std::string("Breed "+toSTR(racesdialog_tabs->count()-1))));
+    
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton->setText("Apply changes");
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].buttonsLay = new QHBoxLayout;
+    QIcon icondel(QApplication::applicationDirPath()+"/bin.png");
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton = new QPushButton(icondel, "");
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton->setFixedSize(30, 30);
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].buttonsLay->addWidget(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton);
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].buttonsLay->addWidget(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton);
+    
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].mainLay->removeWidget(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton);
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].mainLay->addLayout(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].buttonsLay);
+    
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton->disconnect();
+    QObject::connect(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton, SIGNAL(clicked(bool)), this, SLOT(sendRacesParam()));
+    
+    DialogTab tab_widget;
+    tab_widget.mainLay = new QVBoxLayout;
+    tab_widget.main_widget = new QWidget;
+    tab_widget.nbrockets_lay = new QFormLayout;
+    tab_widget.nbrockets_spin = new QSpinBox;
+    tab_widget.pc_lay = new QFormLayout;
+    tab_widget.pc_spin = new QSpinBox;
+    tab_widget.validateButton = new QPushButton("Create race");
+    tab_widget.pc_spin->setValue(50);
+    tab_widget.pc_spin->setMaximum(100);
+    
+    tab_widget.nbrockets_spin->setMaximum(1000000);
+    tab_widget.nbrockets_spin->setValue(100);
+    
+    tab_widget.pc_lay->addRow("Percentage of obedience : ", tab_widget.pc_spin);
+    tab_widget.nbrockets_lay->addRow("Number of rockets : ", tab_widget.nbrockets_spin);
+    
+    tab_widget.colorButton = new QPushButton(tab_widget.main_widget);
+    
+    QPalette palette;
+    QColor color(255, 255, 255);
+    
+    tab_widget.ColorDiag = new QColorDialog(tab_widget.main_widget);
+    tab_widget.ColorDiag->setCurrentColor(color);
+    
+    palette.setColor(QPalette::Button, tab_widget.ColorDiag->currentColor());
+    tab_widget.colorButton->setPalette(palette);
+    tab_widget.colorButton->setMaximumSize(25, 25);
+    tab_widget.colorButton->setObjectName("color_button");
+    
+    std::cout << "obj" << tab_widget.ColorDiag->parent()->findChild<QPushButton*>("color_button")->objectName().toStdString() << std::endl;
+    
+    tab_widget.mainLay->addLayout(tab_widget.pc_lay);
+    tab_widget.mainLay->addLayout(tab_widget.nbrockets_lay);
+    tab_widget.mainLay->addWidget(tab_widget.colorButton);
+    tab_widget.mainLay->addWidget(tab_widget.validateButton);
+    
+    tab_widget.main_widget->setLayout(tab_widget.mainLay);
+    
+    racesdialog_tabs->addTab(tab_widget.main_widget, "+");
+    
+    racesdialogtab_widgets.push_back(tab_widget);
+    
+    QObject::connect(tab_widget.validateButton, SIGNAL(clicked(bool)), this, SLOT(sendCreateRace()));
+    QObject::connect(tab_widget.colorButton, SIGNAL(clicked(bool)), tab_widget.ColorDiag, SLOT(open()));
+    QObject::connect(tab_widget.ColorDiag, SIGNAL(colorSelected(QColor)), this, SLOT(update_colors()));
+    std::cout << "oui" << std::endl;
+    sendRacesParam();
+    std::cout << "non" << std::endl;
 }
 
 void MainWindow::update_colors(){

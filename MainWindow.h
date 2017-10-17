@@ -24,9 +24,12 @@ struct DialogTab2{
     QSpinBox *pc_spin;
     QFormLayout *nbrockets_lay;
     QSpinBox *nbrockets_spin;
-    QPushButton *validateButton;
     QColorDialog *ColorDiag;
     QPushButton *colorButton;
+    QHBoxLayout *buttonsLay; 
+    QPushButton *validateButton;
+    QPushButton *deleteButton;
+    
 
 };
 
@@ -45,6 +48,7 @@ public slots:
     void sendMoveCible();
     void manageRace();
     void sendRacesParam();
+    void sendCreateRace();
     void update_colors();
 
 private:

@@ -167,7 +167,8 @@ std::vector<Race> *MyCanvas::getPopRaces(){
 
 void MyCanvas::setPopRaces(const std::vector<RaceData> &races){
     genGoto = 0;
-    (threadPopWaiter.get())->wait();
+    (threadPopWaiter.get())->wait();std::cout << "fds" << std::endl;
     pop.setRaces(races);
+    std::cout << "fds" << std::endl;
 }
 
