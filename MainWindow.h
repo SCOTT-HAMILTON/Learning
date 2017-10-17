@@ -44,6 +44,7 @@ public:
 public slots:
     void changeGen(int);
     void sendGotoGen();
+    void sendResetGen();
     void sendRestartGen();
     void sendMoveCible();
     void manageRace();

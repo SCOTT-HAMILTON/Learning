@@ -81,6 +81,12 @@ void MyCanvas::resetGen(){
     pop.resetPopulation();
 }
 
+void MyCanvas::restartGen(){
+    genGoto = 0;
+    (threadPopWaiter.get())->wait();
+    pop.restartGeneration();
+}
+
 void MyCanvas::moveCible(){
     move_cible = true;
 }

@@ -23,6 +23,7 @@ protected:
 public slots:
     void gotoGen(int);
     void resetGen();
+    void restartGen();
     void moveCible();
     void addRectObst();
     void deleteObstacles();

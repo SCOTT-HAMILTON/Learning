@@ -44,6 +44,7 @@ public:
   void movePopulation();
   void createRectobs(const sf::FloatRect &rect, bool fixed = true);
   void resetPopulation();
+  void restartGeneration();
   int getCurrentGeneration();
   void deleteObstacle(const sf::Vector2f &mousepos);
   void deleteAllObstacles();

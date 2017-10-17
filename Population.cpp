@@ -33,8 +33,10 @@ void Population::createRace(const int &pc_obey, const int &nb_rockets)
   races.push_back(race);
   for (int i = 0; i < nb_rockets; i++){
     races[races.size()-1].rockets.push_back(Rocket(pc_obey, nb_angles, nb_frames));
-    races[races.size()-1].cur_bestangles.push_back(0);
   }
+  
+  for (int i = 0; i < nb_angles; i++)races[races.size()-1].cur_bestangles.push_back(0);
+  
   races[races.size()-1].raceData.pc_obey = pc_obey;
   races[races.size()-1].raceData.success = 0;
   
@@ -179,6 +181,17 @@ void Population::resetPopulation(){
     for (std::size_t r = 0; r < races.size(); r++){
         for (int i = 0; i < races[r].raceData.nb_rockets; i++){
             races[r].rockets[i].restart();
+        }
+    }
+}
+
+void Population::restartGeneration(){
+    for (std::size_t r = 0; r < races.size(); r++){
+        for (int i = 0; i < races[r].raceData.nb_rockets; i++){
+            std::cout << "yeah 1 : r = " << r << std::endl;
+            std::cout << "stat : " << races[r].cur_supportedecart << ", " << races[r].cur_bestangles.size() << std::endl;
+            races[r].rockets[i].restartFrom(races[r].cur_bestangles, races[r].cur_supportedecart);
+            std::cout << "yeah 2" << std::endl;
         }
     }
 }
@@ -354,6 +367,7 @@ std::vector<Race> *Population::getRaces(){
     return &races;
 }
 void Population::setRaces(const std::vector<RaceData> &races){
+    std::cout << "oui" << std::endl;
     while (races.size() > this->races.size()){
         createRace(50, 0);
     }
@@ -362,15 +376,17 @@ void Population::setRaces(const std::vector<RaceData> &races){
     }
     for (std::size_t i = 0; i < races.size(); i++){
         std::cout << "fds 1" << std::endl;
+        this->races[i].cur_bestangles;
         this->races[i].raceData = races[i];
-         std::cout << "fds 2" << std::endl;
-        while ((std::size_t)this->races[i].raceData.nb_rockets > this->races[i].rockets.size()){
-            this->races[i].rockets.push_back(Rocket(Rocket(this->races[i].raceData.pc_obey, nb_angles, nb_frames)));
+         std::cout << "fds 2 " << this->races[i].raceData.nb_rockets << " | " << this->races[i].rockets.size() << " i = " << i << std::endl;
+        while ((std::size_t)races[i].nb_rockets > this->races[i].rockets.size()){
+            this->races[i].rockets.push_back(Rocket(Rocket(races[i].pc_obey, nb_angles, nb_frames)));//, this->races[i].cur_bestangles, this->races[i].cur_supportedecart)));
         }
-         std::cout << "fds 3" << std::endl;
-        while ((std::size_t)this->races[i].raceData.nb_rockets < this->races[i].rockets.size()){
+        std::cout << "fds 3" << std::endl;
+        while ((std::size_t)races[i].nb_rockets < this->races[i].rockets.size()){
             this->races[i].rockets.erase(this->races[i].rockets.begin());
         }
-         std::cout << "fds 4" << std::endl;
+        std::cout << "fds 4" << std::endl;
     }
+    std::cout << "non" << std::endl;
 }

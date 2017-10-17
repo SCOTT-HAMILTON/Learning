@@ -61,7 +61,7 @@ MainWindow::MainWindow()
 
     QObject::connect(canvas, SIGNAL(genChanged(int)), this, SLOT(changeGen(int)));
     QObject::connect(validGenButton, SIGNAL(clicked(bool)), this, SLOT(sendGotoGen()));
-    QObject::connect(restartGenButton, SIGNAL(clicked(bool)), this, SLOT(sendRestartGen()));
+    QObject::connect(restartGenButton, SIGNAL(clicked(bool)), this, SLOT(sendResetGen()));
     QObject::connect(moveCibleText, SIGNAL(clicked(bool)), this, SLOT(sendMoveCible()));
     QObject::connect(createObstacle, SIGNAL(clicked(bool)), canvas, SLOT(addRectObst()));
     QObject::connect(clearObstacles, SIGNAL(clicked(bool)), canvas, SLOT(deleteObstacles()));
@@ -77,8 +77,12 @@ void MainWindow::sendGotoGen(){
     canvas->gotoGen(genBox->value());
 }
 
-void MainWindow::sendRestartGen(){
+void MainWindow::sendResetGen(){
     canvas->resetGen();
+}
+
+void MainWindow::sendRestartGen(){
+    canvas->restartGen();
 }
 
 void MainWindow::sendMoveCible(){
@@ -185,6 +189,7 @@ void MainWindow::sendRacesParam(){
     canvas->setPopRaces(params);
     std::cout << "end" << std::endl;
     sendRestartGen();
+    std::cout << "yeah" << std::endl;
     
 }
 

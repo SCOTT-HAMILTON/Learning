@@ -9,7 +9,7 @@ class Rocket
 {
 public:
   Rocket(const int &obey, const int &nb_angles, const int &nb_frames);
-  Rocket(const int &obey, const int &nb_angles, const int &nb_frames, std::vector<int> angles, const int &supported_ecart = 3000);
+  Rocket(const int &obey, const int &nb_angles, const int &nb_frames, const std::vector<int> &angles, const int &supported_ecart = 3000);
   void move();
   sf::Vector2f getPos();
   int getAngle();
