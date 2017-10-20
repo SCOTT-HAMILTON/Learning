@@ -8,8 +8,28 @@
         ( std::ostringstream() << std::dec << x ) ).str()
 #endif //toSTR
 
+DialogTabConnector::DialogTabConnector(int index_tab, const QTabWidget *tab, QPushButton *sender, const std::vector<DialogTab> *widgets_tabs)
+{
+    index = index_tab;
+    this->tab = (QTabWidget*)tab;
+    this->widgets_tabs = (std::vector<DialogTab> *)widgets_tabs;
+    
+    QObject::connect(sender, SIGNAL(clicked(bool)), this, SLOT(deleteTab()));
+}
+
+void DialogTabConnector::setIndex(int index){
+    this->index = index;
+}
+
+void DialogTabConnector::deleteTab(){
+    tab->removeTab(index);
+    widgets_tabs->erase(widgets_tabs->begin()+index);
+    emit tab_deleted(index);
+}
+
 MainWindow::MainWindow()
 {
+    
     setFixedSize({1065, 480});
     mainLay = new QHBoxLayout;
 
@@ -70,7 +90,6 @@ MainWindow::MainWindow()
 
 void MainWindow::changeGen(int val){
     genBox->setMaximum(val+10000);
-    genBox->setMinimum(genBox->value());
 }
 
 void MainWindow::sendGotoGen(){
@@ -93,7 +112,7 @@ void MainWindow::initRacesDialog(){
     
     races_dialog = new QDialog;
     std::vector<Race> *races = canvas->getPopRaces();
-    races_dialog->setMinimumSize(races->size()*68+73, 200);
+    races_dialog->setMinimumSize(races->size()*92+100, 200);
     racesdialog_lay = new QHBoxLayout;
     racesdialog_tabs = new QTabWidget;
     for (std::size_t i = 0; i < races->size()+1; i++){
@@ -112,11 +131,13 @@ void MainWindow::initRacesDialog(){
             tab_widget.validateButton = new QPushButton("Apply changes");
             tab_widget.pc_spin->setValue((*(races))[i].raceData.pc_obey);
             tab_widget.buttonsLay = new QHBoxLayout;
-            QIcon icondel(QApplication::applicationDirPath()+"/bin.png");
-            tab_widget.deleteButton = new QPushButton(icondel, "");
-            tab_widget.deleteButton->setFixedSize(30, 30);
+            QIcon delIcon(QPixmap(QApplication::applicationDirPath()+"/bin.png"));
+            tab_widget.deleteButton = new QPushButton(delIcon, "");
+            tab_widget.deleteButton->setFixedSize(33 , 30);
             tab_widget.buttonsLay->addWidget(tab_widget.validateButton);
             tab_widget.buttonsLay->addWidget(tab_widget.deleteButton);
+            racesdialogtab_connector.push_back(new DialogTabConnector((int)i, racesdialog_tabs, tab_widget.deleteButton, &racesdialogtab_widgets));
+            QObject::connect(racesdialogtab_connector[i], SIGNAL(tab_deleted(int)), this, SLOT(delete_DialogTabConnector(int)));
         }
         tab_widget.pc_spin->setMaximum(100);
         
@@ -147,8 +168,9 @@ void MainWindow::initRacesDialog(){
         tab_widget.mainLay->addLayout(tab_widget.pc_lay);
         tab_widget.mainLay->addLayout(tab_widget.nbrockets_lay);
         tab_widget.mainLay->addWidget(tab_widget.colorButton);
-        if (i == races->size())tab_widget.mainLay->addWidget(tab_widget.validateButton);
+        if (i == races->size()) tab_widget.mainLay->addWidget(tab_widget.validateButton);
         else tab_widget.mainLay->addLayout(tab_widget.buttonsLay);
+        
         
         tab_widget.main_widget->setLayout(tab_widget.mainLay);
         
@@ -162,9 +184,7 @@ void MainWindow::initRacesDialog(){
         QObject::connect(tab_widget.colorButton, SIGNAL(clicked(bool)), tab_widget.ColorDiag, SLOT(open()));
         QObject::connect(tab_widget.ColorDiag, SIGNAL(colorSelected(QColor)), this, SLOT(update_colors()));
     }
-    
     racesdialog_lay->addWidget(racesdialog_tabs);
-    
     races_dialog->setLayout(racesdialog_lay);
     std::cout << "w : " << racesdialog_tabs->size().width() << std::endl;
     std::cout << "h : " << racesdialog_tabs->size().height() << std::endl;
@@ -201,7 +221,7 @@ void MainWindow::sendCreateRace(){
     racesdialogtab_widgets[racesdialogtab_widgets.size()-1].buttonsLay = new QHBoxLayout;
     QIcon icondel(QApplication::applicationDirPath()+"/bin.png");
     racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton = new QPushButton(icondel, "");
-    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton->setFixedSize(30, 30);
+    racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton->setFixedSize(33, 30);
     racesdialogtab_widgets[racesdialogtab_widgets.size()-1].buttonsLay->addWidget(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton);
     racesdialogtab_widgets[racesdialogtab_widgets.size()-1].buttonsLay->addWidget(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton);
     
@@ -210,6 +230,9 @@ void MainWindow::sendCreateRace(){
     
     racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton->disconnect();
     QObject::connect(racesdialogtab_widgets[racesdialogtab_widgets.size()-1].validateButton, SIGNAL(clicked(bool)), this, SLOT(sendRacesParam()));
+    
+    racesdialogtab_connector.push_back(new DialogTabConnector((int)racesdialogtab_widgets.size()-1, racesdialog_tabs, racesdialogtab_widgets[racesdialogtab_widgets.size()-1].deleteButton, &racesdialogtab_widgets));
+    QObject::connect(racesdialogtab_connector[racesdialogtab_widgets.size()-1], SIGNAL(tab_deleted(int)), this, SLOT(delete_DialogTabConnector(int)));
     
     DialogTab tab_widget;
     tab_widget.mainLay = new QVBoxLayout;
@@ -270,6 +293,14 @@ void MainWindow::update_colors(){
         palette.setColor(QPalette::Button, racesdialogtab_widgets[i].ColorDiag->currentColor());
         racesdialogtab_widgets[i].colorButton->setPalette(palette);
     }
+}
+
+void MainWindow::delete_DialogTabConnector(int index){
+    racesdialogtab_connector.erase(racesdialogtab_connector.begin()+index);
+    for (std::size_t i = 0; i < racesdialogtab_connector.size(); i++){
+        racesdialogtab_connector[i]->setIndex(i);
+    }
+    sendRacesParam();
 }
 
 

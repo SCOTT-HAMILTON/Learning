@@ -29,11 +29,30 @@ struct DialogTab2{
     QHBoxLayout *buttonsLay; 
     QPushButton *validateButton;
     QPushButton *deleteButton;
-    
 
 };
 
-typedef DialogTab2 DialogTab;
+using DialogTab = DialogTab2;
+
+class DialogTabConnector : public QObject
+{
+    Q_OBJECT
+
+public:
+    DialogTabConnector(int index_tab, const QTabWidget *tab, QPushButton *sender, const std::vector<DialogTab> *widgets_tabs);
+    void setIndex(int index);
+    
+public slots:
+    void deleteTab();
+
+signals:
+    void tab_deleted(int);
+    
+private:
+    int index;
+    QTabWidget *tab;
+    std::vector<DialogTab> *widgets_tabs;
+};
 
 class MainWindow : public QWidget
 {
@@ -51,7 +70,8 @@ public slots:
     void sendRacesParam();
     void sendCreateRace();
     void update_colors();
-
+    void delete_DialogTabConnector(int);
+    
 private:
     QHBoxLayout *mainLay;
     MyCanvas *canvas;
@@ -80,6 +100,7 @@ private:
     QHBoxLayout *racesdialog_lay;
     QTabWidget *racesdialog_tabs; 
     std::vector<DialogTab> racesdialogtab_widgets;
+    std::vector<DialogTabConnector*> racesdialogtab_connector;
 };
 
 #endif // MAINWINDOW_H
